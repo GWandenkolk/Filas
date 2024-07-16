@@ -1,0 +1,118 @@
+#include <iostream>
+#include <queue>
+#include <list>
+#include <string>
+#include <stdexcept>
+
+using namespace std;
+
+struct Guiche {
+    int id;
+    queue<int> senhasAtendidas;
+};
+
+void gerarSenha(queue<int>& senhasGeradas, int& proximaSenha) {
+    senhasGeradas.push(proximaSenha++);
+    cout << "Senha gerada: " << senhasGeradas.back() << endl;
+}
+
+void abrirGuiche(list<Guiche>& guiches, int& proximoGuicheId) {
+    Guiche novoGuiche = {proximoGuicheId++, queue<int>()};
+    guiches.push_back(novoGuiche);
+    cout << "Guiche " << novoGuiche.id << " aberto." << endl;
+}
+
+void realizarAtendimento(queue<int>& senhasGeradas, list<Guiche>& guiches) {
+    if (senhasGeradas.empty()) {
+        cout << "Nao ha senhas aguardando atendimento." << endl;
+        return;
+    }
+
+    int idGuiche;
+    cout << "Digite o ID do guiche que esta chamando a senha: ";
+    cin >> idGuiche;
+
+    list<Guiche>::iterator it = guiches.begin();
+    for (; it != guiches.end(); ++it) {
+        if (it->id == idGuiche) {
+            it->senhasAtendidas.push(senhasGeradas.front());
+            cout << "Senha " << senhasGeradas.front() << " atendida no guiche " << idGuiche << endl;
+            senhasGeradas.pop();
+            return;
+        }
+    }
+    cout << "Guiche " << idGuiche << " nao encontrado." << endl;
+}
+
+void listarSenhasAtendidas(const list<Guiche>& guiches) {
+    int idGuiche;
+    cout << "Digite o ID do guiche: ";
+    cin >> idGuiche;
+
+    list<Guiche>::const_iterator it = guiches.begin();
+    for (; it != guiches.end(); ++it) {
+        if (it->id == idGuiche) {
+            cout << "Senhas atendidas pelo guiche " << idGuiche << ": ";
+            queue<int> temp = it->senhasAtendidas;
+            while (!temp.empty()) {
+                cout << temp.front() << " ";
+                temp.pop();
+            }
+            cout << endl;
+            return;
+        }
+    }
+    cout << "Guiche " << idGuiche << " nao encontrado." << endl;
+}
+
+int main() {
+    queue<int> senhasGeradas;
+    list<Guiche> guiches;
+    int proximaSenha = 1;
+    int proximoGuicheId = 1;
+    int opcao;
+    
+    bool continuar = true;
+
+    do {
+        cout << "\n0. Sair\n1. Gerar senha\n2. Abrir guiche\n3. Realizar atendimento\n4. Listar senhas atendidas\n";
+        cout << "Senhas aguardando atendimento: " << senhasGeradas.size() << endl;
+        cout << "Guiches abertos: " << guiches.size() << endl;
+        cout << "Selecione uma opcao: ";
+        cin >> opcao;
+
+        switch (opcao) {
+            case 0:
+                if (!senhasGeradas.empty()) {
+                    cout << "Ainda ha senhas aguardando atendimento. Nao e possivel sair." << endl;
+                } else {
+                    int totalAtendidas = 0;
+                    for (list<Guiche>::const_iterator it = guiches.begin(); it != guiches.end(); ++it) {
+                        totalAtendidas += it->senhasAtendidas.size();
+                    }
+                    cout << "Total de senhas atendidas: " << totalAtendidas << endl;
+                    cout << "Encerrando o sistema..." << endl;
+                    continuar = false;
+                }
+                break;
+            case 1:
+                gerarSenha(senhasGeradas, proximaSenha);
+                break;
+            case 2:
+                abrirGuiche(guiches, proximoGuicheId);
+                break;
+            case 3:
+                realizarAtendimento(senhasGeradas, guiches);
+                break;
+            case 4:
+                listarSenhasAtendidas(guiches);
+                break;
+            default:
+                cout << "Opcao invalida. Tente novamente." << endl;
+                break;
+        }
+    } while (continuar);
+
+    return 0;
+}
+
